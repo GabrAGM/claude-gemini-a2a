@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python .a2a/*)",
+      "Bash(python \".a2a/orchestrate.py\" *)",
+      "Bash(python \".a2a/new-task.py\" *)",
+      "Bash(python \".a2a/toggle.py\" *)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \".a2a/workflow-reminder.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

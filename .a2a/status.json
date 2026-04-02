@@ -1,0 +1,11 @@
+{
+  "protocolVersion": "1.0",
+  "lastUpdated": null,
+  "updatedBy": null,
+  "currentTask": null,
+  "phase": "idle",
+  "a2aEnabled": true,
+  "queue": [],
+  "completedTasks": [],
+  "notes": "Framework initialized. Ready for first task."
+}

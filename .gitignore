@@ -1,0 +1,23 @@
+# A2A runtime files (not part of the framework template)
+.a2a/tasks/TASK-*
+.a2a/plans/TASK-*
+.a2a/feedback/TASK-*
+.a2a/logs/
+.a2a/backups/
+
+# Keep the empty directories via .gitkeep
+!.a2a/tasks/.gitkeep
+!.a2a/tasks/archive/.gitkeep
+!.a2a/plans/.gitkeep
+!.a2a/feedback/.gitkeep
+!.a2a/logs/.gitkeep
+!.a2a/backups/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
