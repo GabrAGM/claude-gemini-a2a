@@ -248,14 +248,37 @@ Choose the executor model per task complexity. Set in order of priority:
 | `defaultModel` in status.json | All tasks | `"defaultModel": "gemini-2.5-flash"` |
 | None (omit all) | Gemini CLI default | Uses `~/.gemini/settings.json` model |
 
-### Recommended Model Selection
+### Recommended Model Selection (updated April 2026)
+
+**Note:** `gemini-2.5-flash` and `gemini-2.5-pro` are **deprecating June 17, 2026**. Migrate to 3.x models.
 
 | Task Type | Model | Why |
 |-----------|-------|-----|
-| Simple file ops, grep, validation | `gemini-2.5-flash` | Fast, cheap |
-| Complex multi-step code changes | `gemini-2.5-pro` | Better reasoning |
-| Visual tasks (screenshot comparison) | `gemini-2.5-flash-preview-image` | Image understanding |
-| Investigation across large codebase | `gemini-2.5-pro` | Deep analysis |
+| Simple file ops, grep, validation | `gemini-3.1-flash-lite` | Cheapest, fastest, high-volume |
+| General-purpose execution | `gemini-2.5-flash` | Stable GA (until June 2026) |
+| Complex multi-step code changes | `gemini-3.1-pro` | Best reasoning + agentic workflows |
+| Deep investigation / coding | `gemini-2.5-pro` | Deep analysis (until June 2026) |
+| Visual tasks (screenshots, PDFs) | `gemini-3.1-flash-image-preview` | Nano Banana 2 — image understanding |
+| Image generation in reports | `gemini-3-pro-image-preview` | Nano Banana Pro |
+
+### Available Model IDs (Gemini CLI `--model` flag)
+
+```
+# Flagship (text/code/reasoning)
+gemini-3.1-pro                    # Latest — complex agentic tasks
+gemini-2.5-pro                    # GA, deprecating June 2026
+gemini-2.5-flash                  # GA, deprecating June 2026
+gemini-3.1-flash-lite             # Cheapest, fastest
+
+# Image-capable
+gemini-3.1-flash-image-preview    # Nano Banana 2 — visual understanding
+gemini-2.5-flash-image            # Nano Banana — image tasks
+gemini-3-pro-image-preview        # Nano Banana Pro — highest quality
+
+# Budget / legacy
+gemini-2.0-flash                  # Budget general-purpose
+gemini-2.5-flash-lite             # Preview, most cost-efficient 2.5
+```
 
 Claude should set `executorModel` in the task JSON when creating the task based on complexity.
 

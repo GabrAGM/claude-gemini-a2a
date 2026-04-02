@@ -136,12 +136,14 @@ python .a2a/orchestrate.py TASK-001 --model gemini-2.5-pro
 "defaultModel": "gemini-2.5-flash"
 ```
 
-| Task Type | Recommended Model |
-|-----------|-------------------|
-| Simple file ops, validation | `gemini-2.5-flash` |
-| Complex multi-step code changes | `gemini-2.5-pro` |
-| Visual/screenshot tasks | `gemini-2.5-flash-preview-image` |
-| Large codebase investigation | `gemini-2.5-pro` |
+| Task Type | Recommended Model | Notes |
+|-----------|-------------------|-------|
+| Simple file ops, validation | `gemini-3.1-flash-lite` | Cheapest, fastest |
+| General execution | `gemini-2.5-flash` | Stable (deprecating June 2026) |
+| Complex code changes | `gemini-3.1-pro` | Best reasoning |
+| Visual/screenshot tasks | `gemini-3.1-flash-image-preview` | Nano Banana 2 |
+| Large codebase investigation | `gemini-3.1-pro` | Deep analysis |
+| Budget fallback | `gemini-2.0-flash` | Cheapest legacy |
 
 Priority: `--model` flag > task `executorModel` > `defaultModel` > Gemini CLI default.
 
@@ -222,9 +224,15 @@ Gemini CLI uses node-pty which requires a console. The framework sets `CI=true`,
 If you see `"model": Expected object, received string`, update `~/.gemini/settings.json`:
 ```json
 {
-  "model": { "name": "models/gemini-2.0-flash" }
+  "model": { "name": "models/gemini-3.1-pro" }
 }
 ```
+
+### Deprecation Notice
+
+`gemini-2.5-flash` and `gemini-2.5-pro` are **deprecating June 17, 2026**. Migrate to:
+- `gemini-3.1-pro` (replaces 2.5-pro)
+- `gemini-3.1-flash-lite` (replaces 2.5-flash for cost-sensitive tasks)
 
 ### Task Stuck in "executing"
 
