@@ -245,27 +245,3 @@ Claude must tag every plan step with a tier. Gemini applies these rules:
 6. **Archive rule**: on APPROVED verdict, Claude moves `TASK-NNN.json` and `TASK-NNN-feedback.json` to `.a2a/tasks/archive/`. Plans and reports stay permanently as a log.
 7. Task IDs are never reused, even for cancelled tasks.
 
----
-
-## 10. Quick Reference — Starting a New Task
-
-```
-You tell Claude: "Do [task description]"
-
-Claude:
-  1. python ".a2a/new-task.py" "title"      <- creates skeleton files
-  2. Fills in TASK-NNN.json and plan.md
-  3. Updates status.json -> awaiting-execution
-  4. python ".a2a/orchestrate.py" TASK-NNN   <- invokes Gemini
-
-Gemini (subprocess, no human action needed):
-  - Reads GEMINI.md (auto-loaded) + plan file
-  - Executes steps, writes feedback files
-  - Updates status.json -> awaiting-review
-  - Exits
-
-Claude:
-  - Reads feedback, validates against successCriteria
-  - Sets verdict: APPROVED / NEEDS-REVISION / ESCALATE
-  - Reports result to you
-```

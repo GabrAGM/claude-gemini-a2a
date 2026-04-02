@@ -151,6 +151,16 @@ No HTTP servers, no message queues — just files:
 4. **Context written to file** — Gemini reads task details from `.a2a/tasks/TASK-NNN-context.md`
 5. **Absolute prohibitions** — Gemini cannot create tasks, modify plans, or manage task lifecycle
 
+### Token Optimization
+
+The framework is designed to minimize token consumption:
+
+- **GEMINI.md is minimal** (~35 lines) — only behavioral rules, no duplicated sequences
+- **Context file is smart** — references task JSON instead of copying it; adds resume brief on re-invocation
+- **Single source of truth** — schemas in AGENTS.md only, no duplication across files
+- **Compact status hook** — 1-line output instead of 45-line mode descriptions
+- **Direct subprocess** — cmd.exe on Windows (no PowerShell startup overhead)
+
 ## Customization
 
 ### Adding Your Own Context Fields

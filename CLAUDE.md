@@ -93,26 +93,10 @@ Verdict -> `TASK-NNN.json` review field:
 - **ESCALATE** -> report to human
 
 ### Step 4b — Handle Escalation (needs-input)
-If orchestrate.py exits with code 4, or status.json shows `phase: "needs-input"`:
-
-1. Read `.a2a/tasks/TASK-NNN-question.json` — understand what Gemini is stuck on
-2. Read `.a2a/tasks/TASK-NNN-feedback.json` — see what steps completed so far
-3. Analyze the question using your own tools (read files, grep, etc.)
-4. Append a `## Clarification — Round N` section to the plan file:
-   ```markdown
-   ## Clarification — Round N
-   **Question from Gemini:** [copy from question.json]
-   **Claude's answer:** [your analysis and specific instructions]
-   **Resume from:** Step sN
-   **Additional steps (if any):**
-   ### Step Na — [New step] {step-id: sNa} [Tier X]
-   ...
-   ```
-5. Set phase back to `awaiting-execution` in both task JSON and status.json
-6. Re-invoke: `python ".a2a/orchestrate.py" TASK-NNN`
-7. Gemini will skip completed steps and resume with your clarification
-
-**Limit:** Maximum 3 escalation rounds per task. After 3, ESCALATE to human.
+If orchestrate.py exits with code 4: read question.json + partial feedback, analyze
+the problem, append `## Clarification -- Round N` to the plan (format: see AGENTS.md
+section 7), set phase to `awaiting-execution`, re-invoke orchestrate.py.
+Max 3 rounds per task, then ESCALATE to human.
 
 ---
 
