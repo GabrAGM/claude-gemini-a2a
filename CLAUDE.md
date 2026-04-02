@@ -104,6 +104,12 @@ Max 3 rounds per task, then ESCALATE to human.
 - Check existing scripts before writing new ones
 - Always use absolute paths in plans
 - Never plan deletions without a backup step to `.a2a/backups/TASK-NNN/` first
+- **Set `executorModel`** in TASK-NNN.json based on complexity:
+  - Simple/fast tasks: `gemini-2.5-flash` (cheap, fast)
+  - Complex reasoning: `gemini-2.5-pro` (better analysis)
+  - Visual/image tasks: `gemini-2.5-flash-preview-image`
+  - Or override per-invocation: `python ".a2a/orchestrate.py" TASK-NNN --model gemini-2.5-pro`
+- **On NEEDS-REVISION**: only rewrite changed steps; mark others `[UNCHANGED]`; consider switching to a faster model if the fix is simple
 
 ## Hard Constraints
 - NEVER skip `orchestrate.py` for EXECUTE-mode tasks and do the work yourself

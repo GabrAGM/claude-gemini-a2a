@@ -1,11 +1,12 @@
 {
-  "protocolVersion": "1.0",
+  "protocolVersion": "1.1",
   "lastUpdated": null,
   "updatedBy": null,
   "currentTask": null,
   "phase": "idle",
   "a2aEnabled": true,
+  "defaultModel": null,
   "queue": [],
   "completedTasks": [],
-  "notes": "Framework initialized. Ready for first task."
+  "notes": "Framework initialized. Set defaultModel or use --model per task."
 }

@@ -29,6 +29,8 @@ def main():
     parser.add_argument("task_id", help="Task ID, e.g. TASK-001")
     parser.add_argument("--timeout", type=int, default=600,
                         help="Max seconds to wait for Gemini (default: 600)")
+    parser.add_argument("--model", type=str, default=None,
+                        help="Override executor model (e.g. gemini-2.5-pro, gemini-2.5-flash)")
     args = parser.parse_args()
 
     task_id = args.task_id
@@ -54,8 +56,44 @@ def main():
 
     criteria = task.get("successCriteria", [])
 
+    # --- Resolve executor model ---
+    # Priority: CLI --model flag > task JSON executorModel > status.json defaultModel > none
+    model = args.model
+    if not model:
+        model = task.get("executorModel")
+    if not model:
+        try:
+            st = json.loads((A2A / "status.json").read_text(encoding="utf-8"))
+            model = st.get("defaultModel")
+        except Exception:
+            pass
+
+    if model:
+        print(f"[orchestrate] Model: {model}")
+
+    # --- Count iteration (for token-efficient delta context) ---
+    iteration = 1
+    existing_logs = sorted(A2A.glob(f"logs/{task_id}-gemini*.log"))
+    if existing_logs:
+        iteration = len(existing_logs) + 1
+    # Rename current log to include iteration number on re-runs
+    if iteration > 1:
+        log_file = A2A / "logs" / f"{task_id}-gemini-r{iteration}.log"
+
     # --- Detect resume mode ---
     is_resume = feedback_file.exists() and question_file.exists()
+
+    # --- Build token-efficient feedback instruction ---
+    # On iterations > 1, tell Gemini to write delta feedback (only failures + changes)
+    feedback_hint = ""
+    if iteration > 1:
+        feedback_hint = (
+            f"\n## Feedback Optimization (iteration {iteration})\n"
+            f"This is re-run #{iteration}. In your feedback:\n"
+            f"- Only include full stdout for FAILED steps\n"
+            f"- For passing steps, write: stepId + 'PASS' + 1-line summary\n"
+            f"- Focus report on what CHANGED vs previous run\n"
+        )
 
     if is_resume:
         prev = json.loads(feedback_file.read_text(encoding="utf-8"))
@@ -64,15 +102,16 @@ def main():
         stuck_at = q.get("stuckAtStep", "?")
 
         context_content = (
-            f"# Task Brief: {task_id} (RESUMING)\n\n"
+            f"# Task Brief: {task_id} (RESUMING — round {iteration})\n\n"
             f"Task spec: `.a2a/tasks/{task_id}.json`\n"
             f"Plan: `.a2a/plans/{task_id}-plan.md`\n\n"
             f"## Resume Brief\n"
-            f"- Steps already completed: {', '.join(completed)}\n"
-            f"- You were stuck at: {stuck_at}\n"
-            f"- Read `## Clarification` in the plan for Claude's answer\n"
-            f"- Skip completed steps, resume from {stuck_at}\n\n"
-            f"## Acceptance Criteria\n"
+            f"- Steps done: {', '.join(completed)}\n"
+            f"- Stuck at: {stuck_at}\n"
+            f"- Read `## Clarification` in plan for Claude's answer\n"
+            f"- Skip completed steps, resume from {stuck_at}\n"
+            + feedback_hint
+            + f"\n## Acceptance Criteria\n"
             + "".join(f"- {c}\n" for c in criteria)
         )
         prompt = (
@@ -89,8 +128,9 @@ def main():
             f"1. Read task JSON + plan file\n"
             f"2. Set phase=executing, execute all plan steps, capture output\n"
             f"3. Write feedback JSON + report MD\n"
-            f"4. Set phase=awaiting-review\n\n"
-            f"## Acceptance Criteria\n"
+            f"4. Set phase=awaiting-review\n"
+            + feedback_hint
+            + f"\n## Acceptance Criteria\n"
             + "".join(f"- {c}\n" for c in criteria)
         )
         prompt = (
@@ -121,13 +161,13 @@ def main():
     log_fd = open(log_file, "w", encoding="utf-8", errors="replace")
 
     try:
+        model_flag = f" --model {model}" if model else ""
         if sys.platform == "win32":
-            # Use cmd.exe for minimal overhead (vs PowerShell ~2-3s startup)
             cmd = ["cmd", "/c",
-                   f'gemini -p "%A2A_GEMINI_PROMPT%" --yolo']
+                   f'gemini -p "%A2A_GEMINI_PROMPT%" --yolo{model_flag}']
         else:
             cmd = ["bash", "-c",
-                   'gemini -p "$A2A_GEMINI_PROMPT" --yolo']
+                   f'gemini -p "$A2A_GEMINI_PROMPT" --yolo{model_flag}']
 
         process = subprocess.Popen(
             cmd, cwd=str(PROJECT_ROOT), env=env,

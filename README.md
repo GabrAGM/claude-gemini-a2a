@@ -121,6 +121,30 @@ When Gemini hits a blocker during execution, it can **ask Claude for help**:
 
 This enables **active collaboration** between the agents — up to 3 rounds per task.
 
+### Model Selection
+
+Choose the right Gemini model per task:
+
+```bash
+# Per invocation
+python .a2a/orchestrate.py TASK-001 --model gemini-2.5-pro
+
+# Per task (in TASK-NNN.json)
+"executorModel": "gemini-2.5-flash"
+
+# Global default (in status.json)
+"defaultModel": "gemini-2.5-flash"
+```
+
+| Task Type | Recommended Model |
+|-----------|-------------------|
+| Simple file ops, validation | `gemini-2.5-flash` |
+| Complex multi-step code changes | `gemini-2.5-pro` |
+| Visual/screenshot tasks | `gemini-2.5-flash-preview-image` |
+| Large codebase investigation | `gemini-2.5-pro` |
+
+Priority: `--model` flag > task `executorModel` > `defaultModel` > Gemini CLI default.
+
 ### Risk Tiers
 
 Every plan step is tagged with a safety tier:
@@ -160,6 +184,9 @@ The framework is designed to minimize token consumption:
 - **Single source of truth** — schemas in AGENTS.md only, no duplication across files
 - **Compact status hook** — 1-line output instead of 45-line mode descriptions
 - **Direct subprocess** — cmd.exe on Windows (no PowerShell startup overhead)
+- **Delta feedback on iterations** — re-runs only report failures in detail, passing steps get 1-line summaries
+- **Progressive logging** — each iteration preserved separately (`TASK-001-gemini-r2.log`)
+- **Model switching** — use fast models for simple tasks, pro models for complex ones
 
 ## Customization
 

@@ -64,6 +64,7 @@ Valid `phase` values: `idle | planning | awaiting-execution | executing | needs-
     "affectedFiles": [],
     "affectedDataFiles": []
   },
+  "executorModel": null,
   "successCriteria": [
     "Criterion 1",
     "Criterion 2"
@@ -93,6 +94,7 @@ Valid `phase` values: `idle | planning | awaiting-execution | executing | needs-
   "currentTask": "TASK-001",
   "phase": "awaiting-execution",
   "a2aEnabled": true,
+  "defaultModel": null,
   "queue": ["TASK-002"],
   "completedTasks": [],
   "notes": "Human-readable note about current state"
@@ -235,7 +237,54 @@ Claude must tag every plan step with a tier. Gemini applies these rules:
 
 ---
 
-## 9. Coordination Rules
+## 9. Model Selection
+
+Choose the executor model per task complexity. Set in order of priority:
+
+| Method | Scope | Example |
+|--------|-------|---------|
+| `--model` flag on orchestrate.py | Single invocation | `python .a2a/orchestrate.py TASK-001 --model gemini-2.5-pro` |
+| `executorModel` in TASK-NNN.json | Per task | `"executorModel": "gemini-2.5-flash"` |
+| `defaultModel` in status.json | All tasks | `"defaultModel": "gemini-2.5-flash"` |
+| None (omit all) | Gemini CLI default | Uses `~/.gemini/settings.json` model |
+
+### Recommended Model Selection
+
+| Task Type | Model | Why |
+|-----------|-------|-----|
+| Simple file ops, grep, validation | `gemini-2.5-flash` | Fast, cheap |
+| Complex multi-step code changes | `gemini-2.5-pro` | Better reasoning |
+| Visual tasks (screenshot comparison) | `gemini-2.5-flash-preview-image` | Image understanding |
+| Investigation across large codebase | `gemini-2.5-pro` | Deep analysis |
+
+Claude should set `executorModel` in the task JSON when creating the task based on complexity.
+
+---
+
+## 10. Iteration Token Optimization
+
+On re-runs and NEEDS-REVISION iterations, the framework automatically reduces token usage:
+
+### Compact Feedback (iteration > 1)
+- **Passing steps**: stepId + "PASS" + 1-line summary (no full stdout)
+- **Failed steps**: Full stdout/stderr (for debugging)
+- **Report**: Focus on what CHANGED vs previous run
+
+### Progressive Context
+- `orchestrate.py` tracks iteration count per task
+- Each iteration's log is preserved: `TASK-001-gemini.log`, `TASK-001-gemini-r2.log`, etc.
+- Context file shrinks on re-runs (skip sequence instructions, add delta hints)
+
+### Claude's Role in Iteration Efficiency
+When creating NEEDS-REVISION plans:
+- Reference the previous plan: "Same as TASK-NNN-plan.md with these changes:"
+- Only specify the steps that need modification
+- Mark unchanged steps with `[UNCHANGED from vN]`
+- Set `executorModel` to a faster model if the revision is simple
+
+---
+
+## 11. Coordination Rules
 
 1. Only one task may be in `executing` phase at a time.
 2. Claude must check `status.json` before calling `orchestrate.py`. If phase != `awaiting-execution`, abort.

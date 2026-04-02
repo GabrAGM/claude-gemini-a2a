@@ -39,7 +39,15 @@ def next_task_id():
 
 
 def main():
-    title = " ".join(sys.argv[1:]).strip() or "Untitled"
+    # Parse args: "title" [--model modelname]
+    argv = sys.argv[1:]
+    model = None
+    if "--model" in argv:
+        idx = argv.index("--model")
+        if idx + 1 < len(argv):
+            model = argv[idx + 1]
+            argv = argv[:idx] + argv[idx + 2:]
+    title = " ".join(argv).strip() or "Untitled"
     task_id = next_task_id()
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -61,6 +69,7 @@ def main():
             "affectedFiles": [],
             "affectedDataFiles": []
         },
+        "executorModel": model,
         "successCriteria": [],
         "rollbackPlan": "none",
         "executionStartedAt": None,
